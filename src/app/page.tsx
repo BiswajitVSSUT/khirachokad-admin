@@ -1,103 +1,184 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { shopAPI } from '@/lib/api';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import ShopCard from '@/components/shops/ShopCard';
+import ShopForm from '@/components/shops/ShopForm';
+import { Button } from '@/components/ui/button';
+import { Plus, Store } from 'lucide-react';
+import { Shop, ShopFormData, ApiError } from '@/types/api';
+import { isApiError } from '@/types/api';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function HomePage() {
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingShop, setEditingShop] = useState<Shop | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/auth/signin');
+      return;
+    }
+    if (isAuthenticated) {
+      fetchShops();
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  const fetchShops = async () => {
+    try {
+      setIsLoading(true);
+      const response = await shopAPI.getAll();
+      if (response.success) {
+        console.log(response.data)
+        setShops(response.data || []);
+      } else {
+        setError('Failed to fetch shops');
+      }
+    } catch (err: unknown) {
+      setError(isApiError(err) ? err.message : 'Failed to fetch shops');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateShop = () => {
+    setEditingShop(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditShop = (shop: Shop) => {
+    setEditingShop(shop);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteShop = async (id: string) => {
+    try {
+      const response = await shopAPI.delete(id);
+      if (response.success) {
+        setShops(shops.filter(shop => shop.id !== id));
+      } else {
+        setError('Failed to delete shop');
+      }
+    } catch (err: unknown) {
+      setError(isApiError(err) ? err.message : 'Failed to delete shop');
+    }
+  };
+
+  const handleViewProducts = (shopId: string) => {
+    router.push(`/shops/${shopId}/products`);
+  };
+
+  const handleFormSubmit = async (data: ShopFormData) => {
+    try {
+      setIsSubmitting(true);
+      setError('');
+
+      let response;
+      if (editingShop) {
+        response = await shopAPI.update({ ...data, id: editingShop.id });
+      } else {
+        response = await shopAPI.create(data);
+      }
+
+      if (response.success) {
+        setIsFormOpen(false);
+        setEditingShop(null);
+        fetchShops(); // Refresh the list
+      } else {
+        setError(response.message || 'Failed to save shop');
+      }
+    } catch (err: unknown) {
+      setError(isApiError(err) ? err.message : 'Failed to save shop');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (authLoading || isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading...</p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Shops Management</h1>
+            <p className="text-gray-600">Manage your shops and their QR codes</p>
+          </div>
+          <Button onClick={handleCreateShop} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Shop
+          </Button>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        {/* Shops grid */}
+        {shops.length === 0 ? (
+          <div className="text-center py-12">
+            <Store className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No shops</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Get started by creating a new shop.
+            </p>
+            <div className="mt-6">
+              <Button onClick={handleCreateShop}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Shop
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="responsive-grid">
+            {shops.map((shop) => (
+              <ShopCard
+                key={shop.id}
+                shop={shop}
+                onEdit={handleEditShop}
+                onDelete={handleDeleteShop}
+                onViewProducts={handleViewProducts}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Shop form modal */}
+        <ShopForm
+          isOpen={isFormOpen}
+          onClose={() => {
+            setIsFormOpen(false);
+            setEditingShop(null);
+          }}
+          onSubmit={handleFormSubmit}
+          isLoading={isSubmitting}
+          initialData={editingShop || undefined}
+          title={editingShop ? 'Edit Shop' : 'Create New Shop'}
+        />
+      </div>
+    </DashboardLayout>
   );
 }

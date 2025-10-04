@@ -1,0 +1,1 @@
+export const VERIFICATION_BASE_URL = "https://www.khirachokada.com/verify-product?verify="
