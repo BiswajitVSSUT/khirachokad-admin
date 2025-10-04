@@ -49,7 +49,7 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  signin: async (email: string, password: string): Promise<ApiResponse<{ token: string; user: { id: string; name: string; email: string; avatar: string } }>> => {
+  signin: async (email: string, password: string): Promise<ApiResponse<{ token: string; admin: { id: string; name: string; email: string; avatar: string } }>> => {
     const response = await api.post('/auth/signin', { email, password });
     return response.data;
   },
