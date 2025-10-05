@@ -14,9 +14,17 @@ import { VERIFICATION_BASE_URL } from '@/constants/url';
 import { Product, Shop, ProductFormData, UpdateProductData, ApiError } from '@/types/api';
 import { isApiError } from '@/types/api';
 
+type User = {
+  id: string,
+  name: string,
+  email: string,
+  avatar: string
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -27,15 +35,54 @@ export default function ProductsPage() {
   const params = useParams();
   const shopId = params.shopId as string;
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/signin');
-      return;
-    }
+ useEffect(() => {
+    const initializePage = async () => {
+      // Redirect if not authenticated
+      if (!authLoading && !isAuthenticated) {
+        router.push('/auth/signin');
+        return;
+      }
 
-    if (isAuthenticated && shopId) {
-      fetchData();
-    }
+      // Wait until auth is determined and we have a shopId
+      if (authLoading || !shopId) return;
+
+      try {
+        setIsLoading(true);
+        
+        // Load user from localStorage
+        const savedUser = localStorage.getItem('auth_user');
+        if (!savedUser) {
+          router.push('/auth/signin');
+          return;
+        }
+
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+
+        // Fetch shop data
+        const shopResponse = await shopAPI.getAll(userData.id);
+        if (shopResponse.success && shopResponse.data) {
+          const foundShop = shopResponse.data.find((s: Shop) => s.id === shopId);
+          if (foundShop) {
+            setShop(foundShop);
+            
+            // Fetch products
+            const productResponse = await productAPI.getByShop(shopId);
+            if (productResponse.success) {
+              setProducts(productResponse.data || []);
+            }
+          } else {
+            setError('Shop not found');
+          }
+        }
+      } catch (error) {
+        setError('Failed to load data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializePage();
   }, [isAuthenticated, authLoading, router, shopId]);
 
   const generateQRForProduct = async (product: Product) => {
@@ -66,7 +113,7 @@ export default function ProductsPage() {
       setIsLoading(true);
 
       // Fetch shop details
-      const shopResponse = await shopAPI.getAll();
+      const shopResponse = await shopAPI.getAll(user ? user?.id : "");
       if (shopResponse.success && shopResponse.data) {
         const foundShop = shopResponse.data.find((s: Shop) => s.id === shopId);
         if (foundShop) {

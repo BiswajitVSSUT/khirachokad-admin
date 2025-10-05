@@ -13,7 +13,15 @@ import { Shop, ShopFormData, ApiError } from '@/types/api';
 import { isApiError } from '@/types/api';
 
 export default function HomePage() {
+  type User = {
+    id: string,
+    name: string,
+    email: string,
+    avatar: string
+  }
+
   const [shops, setShops] = useState<Shop[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
@@ -23,21 +31,52 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/signin');
-      return;
-    }
-    if (isAuthenticated) {
-      fetchShops();
-    }
+    const initializePage = async () => {
+      // Redirect if not authenticated
+      if (!authLoading && !isAuthenticated) {
+        router.push('/auth/signin');
+        return;
+      }
+
+      // If authenticated, load user and shops
+      if (isAuthenticated && !authLoading) {
+        try {
+          setIsLoading(true);
+          const savedUser = localStorage.getItem('auth_user');
+          
+          if (savedUser) {
+            const userData = JSON.parse(savedUser);
+            setUser(userData);
+            
+            // Fetch shops directly with the user ID
+            const response = await shopAPI.getAll(userData.id);
+            if (response.success) {
+              console.log('Shops data:', response.data);
+              setShops(response.data || []);
+            } else {
+              setError('Failed to fetch shops');
+            }
+          } else {
+            // No user found in localStorage, redirect to signin
+            router.push('/auth/signin');
+          }
+        } catch (err: unknown) {
+          setError(isApiError(err) ? err.message : 'Failed to fetch shops');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializePage();
   }, [isAuthenticated, authLoading, router]);
 
-  const fetchShops = async () => {
+  const fetchShops = async (id: string) => {
     try {
       setIsLoading(true);
-      const response = await shopAPI.getAll();
+      const response = await shopAPI.getAll(id);
       if (response.success) {
-        console.log(response.data)
+        console.log(response.data);
         setShops(response.data || []);
       } else {
         setError('Failed to fetch shops');
@@ -88,10 +127,11 @@ export default function HomePage() {
         response = await shopAPI.create(data);
       }
 
-      if (response.success) {
+      if (response.success && user) {
         setIsFormOpen(false);
         setEditingShop(null);
-        fetchShops(); // Refresh the list
+        // Refresh the shops list using the current user ID
+        fetchShops(user.id);
       } else {
         setError(response.message || 'Failed to save shop');
       }

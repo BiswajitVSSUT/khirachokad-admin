@@ -57,8 +57,8 @@ export const authAPI = {
 
 // Shop API
 export const shopAPI = {
-  getAll: async (): Promise<ApiResponse<Shop[]>> => {
-    const response = await api.get('/shop/');
+  getAll: async (id : string): Promise<ApiResponse<Shop[]>> => {
+    const response = await api.get(`/shop/${id}`);
     return response.data;
   },
   create: async (shopData: CreateShopData): Promise<ApiResponse<Shop>> => {
