@@ -66,6 +66,7 @@ export interface UpdateProductData extends CreateProductData {
 // Form Submission Types
 export interface ShopFormData {
   name: string;
+  userId: string;
   description: string;
   logo: string;
   contactNumber: string;

@@ -6,20 +6,21 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Shop, ShopFormData } from '@/types/api';
+import { useState, useEffect } from 'react';
 
 const shopSchema = z.object({
   name: z.string().min(4, "Minimum 4 characters required"),
   description: z.string().min(10, 'Minimum 10 characters required'),
-  logo: z.string().min(1 , "Logo url is required").url('Please enter a valid URL'),
+  logo: z.string().min(1, "Logo url is required").url('Please enter a valid URL'),
   contactNumber: z.string().length(10, 'Enter a 10 digit mobile number'),
   contactNumber2: z.string().optional(),
   contactEmail: z.email('Please enter a valid email'),
@@ -30,6 +31,13 @@ const shopSchema = z.object({
 
 type ShopFormSchema = z.infer<typeof shopSchema>;
 
+type User = {
+  id: string,
+  name: string,
+  email: string,
+  avatar: string
+}
+
 interface ShopFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,14 +47,25 @@ interface ShopFormProps {
   title: string;
 }
 
-export default function ShopForm({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  isLoading, 
+export default function ShopForm({
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading,
   initialData,
-  title 
+  title
 }: ShopFormProps) {
+
+  const [user, setUser] = useState<User | null>(null)
+
+  // Use useEffect to handle side effects like localStorage access
+  useEffect(() => {
+    const savedUser = localStorage.getItem('auth_user')
+    if (savedUser) {
+      setUser(JSON.parse(savedUser))
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
   const {
     register,
     handleSubmit,
@@ -70,10 +89,11 @@ export default function ShopForm({
   const handleFormSubmit = (data: ShopFormSchema) => {
     const parsedData: ShopFormData = {
       ...data,
-      contactNumber2 : data.contactNumber2 == '' ? undefined : data.contactNumber2,
-      postalCode : data.postalCode == '' ? undefined : data.postalCode,
-      blockName : data.blockName == '' ? undefined : data.blockName,
-      district : data.district == '' ? undefined : data.district,
+      userId: user ? user.id : "",
+      contactNumber2: data.contactNumber2 == '' ? undefined : data.contactNumber2,
+      postalCode: data.postalCode == '' ? undefined : data.postalCode,
+      blockName: data.blockName == '' ? undefined : data.blockName,
+      district: data.district == '' ? undefined : data.district,
     }
     onSubmit(parsedData);
   };
@@ -92,7 +112,7 @@ export default function ShopForm({
             {initialData ? 'Update shop information' : 'Add a new shop to the system'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="responsive-form">
             <div className="space-y-2">
