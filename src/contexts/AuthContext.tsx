@@ -51,14 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authAPI.signin(email, password);
       
       if (response.success && response.data) {
-        const { token: newToken, user } = response.data; // Changed from 'admin' to 'user'
+        const { token: newToken, admin } = response.data; 
         
         // Save to localStorage
         localStorage.setItem('auth_token', newToken);
-        localStorage.setItem('auth_user', JSON.stringify(user)); // Changed from 'admin' to 'user'
+        localStorage.setItem('auth_user', JSON.stringify(admin)); // Changed from 'admin' to 'user'
         
         setToken(newToken);
-        setUser(user); // Changed from 'admin' to 'user'
+        setUser(admin); // Changed from 'admin' to 'user'
       } else {
         throw new Error(response.message || 'Sign in failed');
       }

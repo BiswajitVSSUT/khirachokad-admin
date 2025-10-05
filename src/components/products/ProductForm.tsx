@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import QRCodeComponent from '@/components/ui/qr-code';
 import {generateQRCodeWithImage, downloadQRCode } from '@/lib/qr-generator';
 import { 
   Dialog, 
@@ -201,57 +200,6 @@ export default function ProductForm({
             />
             {errors.expiryDate && (
               <p className="text-sm text-red-600">{errors.expiryDate.message}</p>
-            )}
-          </div>
-
-          {/* QR Code Generation Section */}
-          <div className="space-y-4 border-t pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium">QR Code Generation</h3>
-                <p className="text-sm text-gray-600">
-                  Generate a QR code for product verification
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGenerateQR}
-                disabled={isGeneratingQR || !watchedValues.name || !watchedValues.description || !initialData?.verificationId}
-              >
-                {isGeneratingQR ? 'Generating...' : 'Generate QR Code'}
-              </Button>
-            </div>
-
-            {showQRPreview && generatedQRCode && (
-              <div className="flex flex-col items-center space-y-4 p-4 bg-gray-50 rounded-lg">
-                <QRCodeComponent 
-                  value={generateVerificationURL(initialData?.verificationId)} 
-                  size={150}
-                  imageUrl={watchedValues.image}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadQR}
-                  >
-                    Download QR Code
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowQRPreview(false)}
-                  >
-                    Hide Preview
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-500 text-center max-w-xs">
-                  Verification URL: {generateVerificationURL(initialData?.verificationId)}
-                </p>
-              </div>
             )}
           </div>
 
