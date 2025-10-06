@@ -60,10 +60,10 @@ export default function ProductForm({
   } = useForm<ProductFormSchema>({
     resolver: zodResolver(productSchema),
     defaultValues: initialData || {
-      name: '',
-      description: '',
-      price: '',
-      image: '',
+      name: 'Khira Chokada',
+      description: 'Khira Chokada - Pure and healthy nutrition for your livestock',
+      price: '1000',
+      image: 'https://admin.khirachokada.com/kc-logo.svg',
       expiryDate: '',
     },
   });
@@ -110,8 +110,10 @@ export default function ProductForm({
   };
 
   const handleFormSubmit = (data: ProductFormSchema) => {
+    const formattedExpiryDate = new Date(data.expiryDate).toISOString();
     const submitData: ProductFormData = {
       ...data,
+      expiryDate: formattedExpiryDate,
       qrCode: generatedQRCode || undefined
     };
     onSubmit(submitData);
@@ -181,6 +183,8 @@ export default function ProductForm({
             <Label htmlFor="image">Product Image URL *</Label>
             <Input
               id="image"
+              readOnly
+              disabled
               placeholder="Enter product image URL"
               {...register('image')}
               className={errors.image ? 'border-red-500' : ''}

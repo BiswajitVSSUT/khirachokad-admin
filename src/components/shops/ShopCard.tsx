@@ -93,11 +93,11 @@ export default function ShopCard({ shop, onEdit, onDelete, onViewProducts }: Sho
               <span>{shop.blockName ? shop.blockName : "N/A"}</span>
             </div>
         </div>
-        <div className='w-full h-24 flex justify-center items-center mt-2'>
+        <div className='w-full h-24 flex justify-center items-center mt-2 overflow-hidden'>
           <img 
           src={shop.logo} 
           alt="Shop image"
-          className='object-contain'/>
+          className='object-contain h-full w-full'/>
         </div>
         <div className="mt-4 flex gap-2">
           <Button 

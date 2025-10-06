@@ -74,15 +74,15 @@ export default function ShopForm({
   } = useForm<ShopFormSchema>({
     resolver: zodResolver(shopSchema),
     defaultValues: initialData || {
-      name: '',
-      description: '',
-      logo: '',
-      contactNumber: '',
+      name: 'MATRUSHAKTI INTERNATIONAL',
+      description: 'Khira Chokada - Pure and healthy nutrition for your livestock',
+      logo: 'https://admin.khirachokada.com/kc-logo.svg',
+      contactNumber: '8018173958',
       contactNumber2: '',
-      contactEmail: '',
+      contactEmail: 'matrushakti.international@yahoo.com',
       postalCode: '',
       blockName: '',
-      district: '',
+      district: 'Puri',
     },
   });
 
@@ -184,6 +184,8 @@ export default function ShopForm({
             <Label htmlFor="logo">Logo URL *</Label>
             <Input
               id="logo"
+              readOnly
+              disabled
               placeholder="Enter logo URL"
               {...register('logo')}
               className={errors.logo ? 'border-red-500' : ''}

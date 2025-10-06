@@ -69,7 +69,7 @@ export const shopAPI = {
     return response.data;
   },
   update: async (shopData: UpdateShopData): Promise<ApiResponse<Shop>> => {
-    const response = await api.put('/shop/', shopData);
+    const response = await api.put('/shop/update', shopData);
     return response.data;
   },
   delete: async (id: string): Promise<ApiResponse<void>> => {
