@@ -1,10 +1,16 @@
 interface AuthError {
-  message: string;
+  message : string;
+  response : {
+    data : {
+    status ?: boolean;
+    message ?: string;
+    error ?: string
+  }}
 }
 
 // Type guard function
 export function isAuthError(error: unknown): error is AuthError {
-  return typeof error === 'object' && error !== null && 'message' in error;
+  return typeof error === 'object' && error !== null && 'response' in error;
 }
 
 interface ProductError {

@@ -41,7 +41,7 @@ export default function SigninPage() {
       await signin(data.email, data.password);
       router.push('/');
     } catch (err : unknown) {
-      isAuthError(err) ? setError(err.message) : setError('Sign in failed. Please try again.');
+      isAuthError(err) ? setError(err.response.data.message ? err.response.data.message : "") : setError('Sign in failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
