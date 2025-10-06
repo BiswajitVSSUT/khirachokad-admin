@@ -140,13 +140,13 @@ export default function ProductCard({ product, onEdit, onDelete, onDownloadQR, o
           <div className="mt-4">
             <div 
               className="bg-white w-full cursor-pointer transition-colors grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 place-items-center"
-              title="Click to view full size QR code"
             >
               <img 
                 src={product.image} 
                 alt="QR Code"
-                className="object-contain border p-2 hover:border-gray-400 h-full"
+                className="object-contain border p-2 hover:border-gray-400 h-20"
               />
+              <div title="Click to view full size QR code">
               <Image 
                 src={product.qrCode} 
                 alt="QR Code"
@@ -155,6 +155,7 @@ export default function ProductCard({ product, onEdit, onDelete, onDownloadQR, o
                 className="w-24 h-24 hover:border-gray-400 border p-2 rounded-md"
                 onClick={() => setShowQRModal(true)}
               />
+              </div>
             </div>
           </div>
         )}
