@@ -37,8 +37,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Clear token and redirect to signin
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes('/auth/signin')
+    ) {
+      // Clear token and redirect to signin only for protected routes
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       window.location.href = '/auth/signin';
