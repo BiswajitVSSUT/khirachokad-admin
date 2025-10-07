@@ -107,7 +107,7 @@ export const generateQRCodeWithImage = async (
         console.warn('Failed to load product image, using QR code without image');
         resolve(null);
       };
-      productImage.src = imageUrl;
+      productImage.src = "";
     });
 
     if (productImage.complete && productImage.naturalWidth > 0) {
